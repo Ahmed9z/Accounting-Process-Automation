@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Logistaas Payoff Closer (v2)",
+  "version": "2.1",
+  "description": "Verify a customer payoff, finalize invoices, record the payment, and generate the receipt on Logistaas",
+  "permissions": ["storage", "tabs", "windows"],
+  "host_permissions": ["https://internal-company-website/*"],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://internal-company-website/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

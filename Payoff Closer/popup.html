@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Logistaas Payoff Closer</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      width: 420px;
+      background: #f5f7fa;
+      color: #333;
+    }
+    .header {
+      background: #2f6fed;
+      color: white;
+      padding: 14px 18px;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+    .header span { font-size: 12px; font-weight: 400; opacity: 0.8; display: block; margin-top: 2px; }
+    .header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+    .pin-btn {
+      flex-shrink: 0; background: rgba(255,255,255,0.15); border: none; border-radius: 6px;
+      padding: 6px; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center;
+    }
+    .pin-btn:hover { background: rgba(255,255,255,0.28); }
+    .pin-btn svg { width: 16px; height: 16px; }
+    .pin-btn.pinned { background: rgba(255,255,255,0.4); }
+    .body { padding: 16px; }
+    .section { background: white; border-radius: 8px; padding: 14px; margin-bottom: 12px; border: 1px solid #e2e8f0; }
+    .section-title { font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+    .hint { font-size: 11px; color: #888; margin-top: 10px; line-height: 1.5; }
+    .field-row { margin-bottom: 10px; }
+    .field-row:last-child { margin-bottom: 0; }
+    .field-row.two-col { display: flex; gap: 10px; }
+    .field-row.two-col > div { flex: 1; }
+    .field-label { font-size: 12px; font-weight: 500; color: #555; margin-bottom: 4px; display: block; }
+    .field-label .required { color: #f44336; margin-left: 2px; }
+    .text-input {
+      width: 100%; padding: 8px 10px; border: 1px solid #dde3ec;
+      border-radius: 6px; font-size: 13px; color: #333;
+      outline: none; transition: border-color 0.2s;
+    }
+    .text-input:focus { border-color: #2f6fed; }
+    .text-input::placeholder { color: #aaa; }
+
+    .mode-toggle { display: flex; gap: 6px; }
+    .mode-btn {
+      flex: 1; padding: 8px; border: 1px solid #dde3ec; background: #f5f7fa;
+      color: #555; border-radius: 6px; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .mode-btn.active { background: #2f6fed; border-color: #2f6fed; color: white; }
+
+    .start-btn {
+      width: 100%; padding: 11px; background: #2f6fed; color: white;
+      border: none; border-radius: 6px; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .start-btn:hover:not(:disabled) { background: #1a56d0; }
+    .start-btn:disabled { background: #aac0f0; cursor: not-allowed; }
+    .confirm-btn {
+      width: 100%; padding: 11px; background: #2e7d32; color: white;
+      border: none; border-radius: 6px; font-size: 14px; font-weight: 600;
+      cursor: pointer; margin-top: 10px; display: none;
+    }
+    .confirm-btn:hover:not(:disabled) { background: #245e28; }
+    .confirm-btn:disabled { background: #a5c9a8; cursor: not-allowed; }
+    .stop-btn {
+      width: 100%; padding: 11px; background: #f44336; color: white;
+      border: none; border-radius: 6px; font-size: 14px; font-weight: 600;
+      cursor: pointer; margin-top: 6px;
+    }
+    .stop-btn:hover { background: #d32f2f; }
+    .status-msg { font-size: 12px; text-align: center; margin-top: 8px; color: #555; min-height: 18px; }
+    .status-msg.done { color: #2e7d32; font-weight: 600; }
+    .status-msg.error { color: #c62828; font-weight: 600; }
+    .balance-row { font-size: 13px; padding: 7px 9px; border-radius: 6px; margin-bottom: 6px; font-weight: 500; }
+    .balance-row.ok { background: #e6f4ea; color: #2e7d32; }
+    .balance-row.short { background: #fce8e6; color: #c62828; }
+    .balance-row.over { background: #fff4e0; color: #b26a00; }
+    .unusual-toggle-row { display: flex; align-items: center; gap: 8px; }
+    .unusual-toggle-row input[type="checkbox"] { width: auto; margin: 0; }
+    .unusual-toggle-row label { font-size: 12px; font-weight: 600; color: #555; cursor: pointer; }
+    .unusual-summary { font-size: 11px; color: #888; margin-left: auto; }
+    .unusual-flag { color: #b26a00; font-weight: 600; font-size: 11px; margin-left: 6px; }
+    .shipment-breakdown { font-size: 12px; color: #555; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+    .shipment-breakdown .line { margin-top: 6px; margin-bottom: 2px; }
+    .shipment-breakdown .line:first-child { margin-top: 0; }
+    .shipment-breakdown .invoice-line { margin-left: 10px; color: #666; }
+    .shipment-breakdown .invoice-line .muted { color: #999; }
+    #balanceSection { display: none; }
+    .progress-bar-wrap { background: #e2e8f0; border-radius: 10px; height: 8px; margin: 8px 0; overflow: hidden; }
+    .progress-bar { height: 100%; background: #2f6fed; border-radius: 10px; transition: width 0.4s; width: 0%; }
+    .progress-label { font-size: 12px; color: #555; text-align: center; margin-top: 4px; }
+    #progressSection { display: none; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-row">
+      <div>
+        Logistaas Payoff Closer
+        <span>Verify payment &rarr; finalize &rarr; receipt</span>
+      </div>
+      <button type="button" id="pinBtn" class="pin-btn" title="Keep this open in its own window">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="17" x2="12" y2="22"></line>
+          <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a1 1 0 0 0 0-2H8a1 1 0 0 0 0 2h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V17z"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <div class="body">
+
+    <div class="section">
+      <div class="section-title">Mode</div>
+      <div class="mode-toggle">
+        <button type="button" class="mode-btn active" id="modeSingleBtn">Single shipment</button>
+        <button type="button" class="mode-btn" id="modeMultiBtn">Multiple shipments</button>
+      </div>
+    </div>
+
+    <div class="section" id="singleModeSection">
+      <div class="section-title">Shipment</div>
+      <div class="field-row">
+        <label class="field-label" for="shipmentInput">Shipment / BL number <span class="required">*</span></label>
+        <input type="text" id="shipmentInput" class="text-input" placeholder="Enter B/L number" />
+      </div>
+    </div>
+
+    <div class="section" id="multiModeSection" style="display:none;">
+      <div class="section-title">Shipments</div>
+      <div class="field-row">
+        <label class="field-label" for="shipmentCountInput">Number of shipments <span class="required">*</span></label>
+        <input type="number" min="2" max="20" id="shipmentCountInput" class="text-input" placeholder="e.g. 4" />
+      </div>
+      <div id="multiShipmentInputs"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Deposit</div>
+      <div class="field-row two-col">
+        <div>
+          <label class="field-label" for="usdInput">USD deposited</label>
+          <input type="number" step="0.01" id="usdInput" class="text-input" placeholder="0.00" />
+        </div>
+        <div>
+          <label class="field-label" for="egpInput">EGP deposited</label>
+          <input type="number" step="0.01" id="egpInput" class="text-input" placeholder="0.00" />
+        </div>
+      </div>
+      <div class="field-row">
+        <label class="field-label" for="bankInput">Bank name <span class="required">*</span></label>
+        <input type="text" id="bankInput" class="text-input" placeholder="e.g. CIB, NBE, QNB..." />
+      </div>
+      <div class="hint">
+        Payment method is always recorded as Cheque, matching current practice.
+        In multiple-shipments mode, these are totals across every shipment
+        combined — nothing is finalized or paid unless the combined total for
+        every currency due is fully covered.
+      </div>
+    </div>
+
+    <button class="start-btn" id="checkBtn">Check balance</button>
+
+    <div class="section">
+      <div class="unusual-toggle-row">
+        <input type="checkbox" id="unusualChargesToggle" />
+        <label for="unusualChargesToggle">Manage unusual-charges BL list</label>
+        <span class="unusual-summary" id="unusualChargesSummary"></span>
+      </div>
+      <div id="unusualChargesPanel" style="display:none;">
+        <div class="field-row" style="margin-top:10px;">
+          <label class="field-label" for="unusualChargesFile">Upload Excel sheet (.xlsx) with a column of BL numbers</label>
+          <input type="file" id="unusualChargesFile" accept=".xlsx,.xls" class="text-input" />
+        </div>
+        <div class="hint" id="unusualChargesStatus">No list loaded yet.</div>
+      </div>
+    </div>
+
+    <div class="section" id="balanceSection">
+      <div class="section-title">Balance check</div>
+      <div id="shipmentBreakdown"></div>
+      <div id="balanceResult"></div>
+      <button class="confirm-btn" id="confirmBtn">Confirm &amp; finalize</button>
+    </div>
+
+    <div class="section" id="progressSection">
+      <div class="section-title">Progress</div>
+      <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
+      <div class="progress-label" id="progressLabel">Starting...</div>
+    </div>
+
+    <button class="stop-btn" id="stopBtn" style="display:none;">Stop</button>
+    <div class="status-msg" id="statusMsg"></div>
+  </div>
+  <script src="xlsx.mini.min.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
