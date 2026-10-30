@@ -27,7 +27,7 @@ The solution consists of three main stages:
 
 ### 2. Data Structuring & Sorting
 
-Once invoice extraction is complete, a separate script processes the `Logistaas Results` workbook.
+Once invoice extraction is complete, a separate script (merger) processes the `Logistaas Results` workbook.
 
 - Sorts and restructures the extracted invoice data.
 - Arranges invoice lines and associated information according to Odoo's import requirements.
