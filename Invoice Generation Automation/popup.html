@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>BL Cost Allocation</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      width: 420px;
+      background: #f5f7fa;
+      color: #333;
+    }
+    .header {
+      background: #2f6fed;
+      color: white;
+      padding: 14px 18px;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+    .header span { font-size: 12px; font-weight: 400; opacity: 0.8; display: block; margin-top: 2px; }
+    .body { padding: 16px; }
+    .section { background: white; border-radius: 8px; padding: 14px; margin-bottom: 12px; border: 1px solid #e2e8f0; }
+    .section-title { font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+    .hint { font-size: 11px; color: #888; margin-bottom: 10px; line-height: 1.5; }
+    .hint code { background: #f0f4ff; color: #2f6fed; padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+    .file-btn {
+      display: block; width: 100%; padding: 10px;
+      border: 2px dashed #c5d5f0; border-radius: 6px;
+      text-align: center; cursor: pointer; color: #2f6fed;
+      font-size: 13px; background: #f0f4ff; transition: all 0.2s;
+    }
+    .file-btn:hover { background: #e0eaff; border-color: #2f6fed; }
+    #fileInput { display: none; }
+    .field-row { margin-bottom: 10px; }
+    .field-row:last-child { margin-bottom: 0; }
+    .field-label { font-size: 12px; font-weight: 500; color: #555; margin-bottom: 4px; display: block; }
+    .field-label .required { color: #f44336; margin-left: 2px; }
+    .text-input {
+      width: 100%; padding: 8px 10px; border: 1px solid #dde3ec;
+      border-radius: 6px; font-size: 13px; color: #333;
+      outline: none; transition: border-color 0.2s;
+    }
+    .text-input:focus { border-color: #2f6fed; }
+    .text-input::placeholder { color: #aaa; }
+    .preview-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+    .preview-table th { background: #f0f4ff; padding: 6px 8px; text-align: left; font-weight: 600; color: #555; border-bottom: 1px solid #ddd; }
+    .preview-table td { padding: 5px 8px; border-bottom: 1px solid #f0f0f0; }
+    .preview-table tr:last-child td { border-bottom: none; }
+    .badge { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 11px; font-weight: 500; }
+    .badge-ok { background: #e6f4ea; color: #2e7d32; }
+    .warnings { margin-top: 10px; }
+    .warning-item { font-size: 11px; color: #c62828; background: #fce8e6; padding: 5px 8px; border-radius: 4px; margin-top: 4px; }
+    .warning-item.warn { color: #f57c00; background: #fff8e1; }
+    .progress-bar-wrap { background: #e2e8f0; border-radius: 10px; height: 8px; margin: 8px 0; overflow: hidden; }
+    .progress-bar { height: 100%; background: #2f6fed; border-radius: 10px; transition: width 0.4s; width: 0%; }
+    .progress-label { font-size: 12px; color: #555; text-align: center; margin-top: 4px; }
+    .start-btn {
+      width: 100%; padding: 11px; background: #2f6fed; color: white;
+      border: none; border-radius: 6px; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .start-btn:hover:not(:disabled) { background: #1a56d0; }
+    .start-btn:disabled { background: #aac0f0; cursor: not-allowed; }
+    .stop-btn {
+      width: 100%; padding: 11px; background: #f44336; color: white;
+      border: none; border-radius: 6px; font-size: 14px; font-weight: 600;
+      cursor: pointer; margin-top: 6px;
+    }
+    .stop-btn:hover { background: #d32f2f; }
+    .status-msg { font-size: 12px; text-align: center; margin-top: 8px; color: #555; min-height: 18px; }
+    .status-msg.done { color: #2e7d32; font-weight: 600; }
+    .status-msg.error { color: #c62828; }
+    #previewSection { display: none; }
+    #progressSection { display: none; }
+    .scroll-preview { max-height: 160px; overflow-y: auto; }
+    .folder-path { font-size: 11px; color: #888; margin-top: 6px; font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    Logistaas Cost Allocation
+    <span>Automated BL cost entry + invoicing</span>
+  </div>
+  <div class="body">
+
+    <!-- Upload CSV -->
+    <div class="section">
+      <div class="section-title">1. Upload CSV File</div>
+      <div class="hint">
+        Two columns required: <code>BL</code> and <code>CNTR Type</code>.
+        Values: <code>20</code> or <code>20'DC</code> and <code>40</code> or <code>40'HC</code>.
+      </div>
+      <label class="file-btn" for="fileInput">📂 Click to choose CSV file</label>
+      <input type="file" id="fileInput" accept=".csv" />
+    </div>
+
+    <!-- Invoice Settings -->
+    <div class="section">
+      <div class="section-title">2. Invoice Settings</div>
+      <div class="field-row">
+        <label class="field-label" for="referenceInput">Invoice Reference <span class="required">*</span></label>
+        <input type="text" id="referenceInput" class="text-input" placeholder="Enter referece" />
+      </div>
+      <div class="field-row">
+        <label class="field-label" for="batchFolderInput">Batch Folder Name <span class="required">*</span></label>
+        <input type="text" id="batchFolderInput" class="text-input" placeholder="e.g. July 2026 Batch" />
+        <div class="folder-path" id="folderPreview">📁 Downloads / <em>(folder name)</em> / BL_NUMBER / invoice_N_USD.pdf</div>
+      </div>
+      <div class="field-row">
+        <label class="field-label" for="etaDateInput">ETA / Arrival Date <span class="required">*</span></label>
+        <input type="date" id="etaDateInput" class="text-input" />
+        <div class="folder-path" style="margin-top:4px">Used when ETA or Arrival Date fields are empty on the shipment</div>
+      </div>
+    </div>
+
+    <!-- Preview -->
+    <div class="section" id="previewSection">
+      <div class="section-title">BLs Found — <span id="blCount">0</span> ready</div>
+      <div class="scroll-preview">
+        <table class="preview-table">
+          <thead>
+            <tr><th>BL Number</th><th>Type</th><th>Qty</th><th>Status</th></tr>
+          </thead>
+          <tbody id="previewBody"></tbody>
+        </table>
+      </div>
+      <div class="warnings" id="warningsBox"></div>
+    </div>
+
+    <!-- Progress -->
+    <div class="section" id="progressSection">
+      <div class="section-title">Progress</div>
+      <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
+      <div class="progress-label" id="progressLabel">Starting...</div>
+    </div>
+
+    <!-- Buttons -->
+    <button class="start-btn" id="startBtn" disabled>Start Automation</button>
+    <button class="stop-btn" id="stopBtn" style="display:none;">⛔ Stop</button>
+    <div class="status-msg" id="statusMsg"></div>
+
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
