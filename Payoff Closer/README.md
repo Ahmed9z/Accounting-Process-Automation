@@ -1,30 +1,33 @@
-# Payoff Closer – Multi-Currency Payment Automation
+# Payoff Closer – Multi-Currency Payment & Invoice Settlement Automation
 
 ## Overview
 
 Payoff Closer is a Chrome extension developed to automate and streamline customer payment reconciliation and invoice settlement.
 
-It retrieves customer billing information from a business management platform, calculates outstanding balances across multiple currencies, validates received payments, and automates the invoice closure process.
+It retrieves customer billing information from a business management platform, calculates outstanding balances across multiple currencies, validates received payments, handles bank-specific invoice information, and automates the invoice closure process.
 
-The solution supports both USD and EGP transactions, reducing manual calculations and accelerating customer payment processing.
+The solution also maintains a reference list of bills of lading (B/Ls) with exceptional charges, allowing the user to identify unusual billing conditions before proceeding with payment settlement.
 
 ## The Problem
 
 Customer payment settlement originally involved manually searching for bills of lading (B/Ls), reviewing associated invoices, calculating outstanding balances, reconciling partial payments, and determining whether the customer's deposit was sufficient to cover the outstanding amount.
 
-This process became particularly time-consuming when payments involved multiple currencies or partially settled invoices.
+Additional manual steps were required to identify exceptional charges and enter the appropriate bank information on invoices.
+
+This process became particularly time-consuming when payments involved multiple currencies, partially settled invoices, or unusual billing conditions.
 
 ## Automated Workflow
 
 ### 1. Payment Information Input
 
-The extension accepts:
+The extension accepts the following information:
 
 - Bill of Lading (B/L) serial number.
 - Amount received in USD.
 - Amount received in EGP.
+- Bank name where the customer deposited the payment.
 
-These values are entered based on the customer's bank deposit receipts.
+The bank information is used to populate the corresponding bank details on the invoices.
 
 ### 2. Customer Billing Retrieval
 
@@ -36,13 +39,26 @@ These values are entered based on the customer's bank deposit receipts.
 
 The extension calculates the outstanding balance for each currency independently.
 
-- Identifies previously settled and partially settled invoices.
+- Identifies previously settled and partially paid invoices.
 - Calculates remaining amounts due in USD and EGP.
 - Accounts for partial payments made in either currency.
 - Determines the total outstanding balance.
-- Identifies whether the customer's payment is sufficient to settle the outstanding invoices.
+- Evaluates whether the customer's payment is sufficient to settle the invoices.
 
-### 4. Payment Validation & Status Indicators
+### 4. Exceptional Charges Detection
+
+Some B/Ls occasionally contain unusual charges, such as War Risk Charges.
+
+To account for these exceptions, the extension uses an external Excel reference sheet containing the B/L numbers associated with unusual charges.
+
+- Reads and maintains a reference list of exceptional B/Ls.
+- Checks the entered B/L number against the reference sheet.
+- Displays a warning whenever a B/L with exceptional charges is identified.
+- Alerts the user before proceeding with payment settlement.
+
+This provides an additional verification step for infrequent billing exceptions without requiring the user to memorize or manually check every exceptional B/L.
+
+### 5. Payment Validation & Status Indicators
 
 Before proceeding with settlement, the extension evaluates the received payment against the outstanding balance.
 
@@ -53,13 +69,14 @@ It provides visual indicators for different payment scenarios:
 - **Underpayment:** Displays a warning indicating the remaining amount due.
 - **Overpayment:** Highlights any excess amount received.
 
-### 5. Automated Invoice Settlement
+### 6. Automated Invoice Settlement
 
 When the received payment is sufficient, the extension provides an option to proceed with automated settlement.
 
 The process includes:
 
 - Finalizing draft invoices.
+- Populating the relevant bank information.
 - Registering payments against the associated invoices.
 - Closing the customer's outstanding balance.
 - Generating and downloading the payment receipt for printing.
@@ -70,10 +87,12 @@ The process includes:
 - Multi-currency reconciliation (USD & EGP).
 - Partial payment calculations.
 - Outstanding balance verification.
+- Bank-specific invoice information.
+- Exceptional B/L detection through Excel reference data.
+- War Risk and other unusual charge warnings.
 - Underpayment and overpayment detection.
 - Automated invoice finalization and settlement.
 - Payment receipt generation and downloading.
-- Reduced manual calculations and repetitive administrative work.
 
 ## Technologies
 
@@ -81,14 +100,15 @@ The process includes:
 - Chrome Extension APIs
 - Browser Automation
 - DOM Manipulation
+- Excel / Spreadsheet Processing
 - Multi-Currency Financial Calculations
 
 ## Business Impact
 
-The extension streamlines the customer payoff process by combining billing retrieval, multi-currency reconciliation, payment validation, and invoice settlement into a single workflow.
+Payoff Closer combines billing retrieval, multi-currency reconciliation, exceptional charge detection, payment validation, and invoice settlement into a streamlined workflow.
 
-It reduces repetitive manual operations, minimizes calculation errors, and accelerates the processing of customer payments.
+It reduces repetitive manual operations, minimizes calculation errors, improves awareness of unusual billing conditions, and accelerates customer payment processing.
 
 ## Note
 
-This repository contains a sanitized version of the project. Company-specific URLs, credentials, customer information, and confidential business configurations are excluded.
+This repository contains a sanitized version of the project. Company-specific URLs, credentials, customer information, internal configurations, and confidential business data are excluded.
