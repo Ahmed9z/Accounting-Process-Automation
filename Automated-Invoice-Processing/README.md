@@ -2,7 +2,7 @@
 
 ## Overview
 
-A collection of automation scripts designed to streamline invoice creation by extracting invoice information from Logistaas(SaaS), mapping its charges to their corresponding Odoo products, and preparing structured data for bulk invoice creation.
+A collection of automation scripts designed to streamline invoice creation by extracting invoice information from Logistaas (SaaS), mapping its charges to their corresponding Odoo products, and preparing structured data for bulk invoice creation.
 
 The solution minimizes repetitive manual data entry, improves consistency, and significantly reduces the time required to process large volumes of invoices.
 
